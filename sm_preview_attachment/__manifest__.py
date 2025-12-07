@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'SM Preview Attachment',
+    'name': 'Preview Attachment : Images, PDFs, Office docs, videos, etc.',
     'version': '17.0.2.0.0',
     'category': 'Tools',
     'summary': 'Preview button for Binary fields and attachment fields in form/list views',
