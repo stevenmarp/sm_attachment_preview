@@ -1,8 +1,8 @@
 # SM Preview Attachment
 
-**Version 2.0.0** | Odoo 18.0 | LGPL-3
+**Version 2.0.0** | Odoo 17.0 | LGPL-3
 
-Preview Binary Fields & Attachments directly in Odoo 18 without downloading files.
+Preview Binary Fields & Attachments directly in Odoo 17 without downloading files.
 
 ## 🚀 Key Features
 
@@ -55,9 +55,8 @@ Preview Binary Fields & Attachments directly in Odoo 18 without downloading file
 - `Many2ManyBinaryField` - Adds preview buttons for attachment list fields
 
 ### Compatibility
-- ✅ Odoo 18.0 Community Edition
-- ✅ Odoo 18.0 Enterprise Edition
-- ℹ️ Complements Odoo 18 Enterprise built-in chatter preview
+- ✅ Odoo 17.0 Community Edition
+- ✅ Odoo 17.0 Enterprise Edition
 
 ## ⚠️ Office Preview Note
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SM Preview Attachment',
-    'version': '18.0.2.0.0',
+    'version': '17.0.2.0.0',
     'category': 'Tools',
     'summary': 'Preview button for Binary fields and attachment fields in form/list views',
     'description': '''
@@ -20,7 +20,7 @@
         - Keyboard shortcut (ESC to close)
         
         Compatibility:
-        - Odoo 18.0 Community & Enterprise
+        - Odoo 17.0 Community & Enterprise
         - Uses OWL 2 component system
     ''',
     'author': 'Steven Marp',
