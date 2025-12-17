@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ================================================================
+         Patch BinaryField - Add Preview Button (Edit Mode with Data)
+         ================================================================ -->
+    <t t-name="web.BinaryField" t-inherit="web.BinaryField" t-inherit-mode="extension">
+        
+        <!-- Add Preview button AFTER download button (before pencil) in edit mode -->
+        <xpath expr="//t[@name='download']" position="after">
+            <t t-if="smCanPreview">
+                <button class="btn btn-link btn-sm lh-1 fa fa-eye o_preview_file_button text-primary"
+                        data-tooltip="Preview"
+                        aria-label="Preview"
+                        t-on-click="smOpenPreview"
+                        type="button"/>
+            </t>
+        </xpath>
+        
+        <!-- Add Preview button before readonly link -->
+        <xpath expr="//a[hasclass('o_form_uri')]" position="before">
+            <t t-if="smCanPreview">
+                <button class="btn btn-link btn-sm p-0 me-1 fa fa-eye o_preview_file_button text-primary"
+                        data-tooltip="Preview"
+                        aria-label="Preview"  
+                        t-on-click="smOpenPreview"
+                        type="button"/>
+            </t>
+        </xpath>
+        
+    </t>
+    
+    <!-- ================================================================
+         Patch ListBinaryField - Add Preview Button for List View
+         ================================================================ -->
+    <t t-name="web.ListBinaryField" t-inherit="web.ListBinaryField" t-inherit-mode="extension">
+        
+        <!-- Add Preview button in list view (after download, before pencil) -->
+        <xpath expr="//t[@name='download']" position="after">
+            <t t-if="smCanPreview">
+                <button class="btn btn-link btn-sm lh-1 fa fa-eye o_preview_file_button text-primary p-0"
+                        data-tooltip="Preview"
+                        aria-label="Preview"
+                        t-on-click="smOpenPreview"
+                        type="button"/>
+            </t>
+        </xpath>
+        
+        <!-- Add Preview button before readonly link in list -->
+        <xpath expr="//a[hasclass('o_form_uri')]" position="before">
+            <t t-if="smCanPreview">
+                <button class="btn btn-link btn-sm p-0 me-1 fa fa-eye o_preview_file_button text-primary"
+                        data-tooltip="Preview"
+                        aria-label="Preview"  
+                        t-on-click="smOpenPreview"
+                        type="button"/>
+            </t>
+        </xpath>
+        
+    </t>
+    
+    <!-- ================================================================
+         Patch Many2ManyBinaryField - Add Preview Button for Attachment Fields
+         ================================================================ -->
+    <t t-name="web.Many2ManyBinaryField.attachment_preview" t-inherit="web.Many2ManyBinaryField.attachment_preview" t-inherit-mode="extension">
+        
+        <!-- Add Preview button in attachment card -->
+        <xpath expr="//div[hasclass('o_image_box')]" position="after">
+            <t t-set="smPreviewable" t-value="smCanPreviewFile(file)"/>
+            <t t-if="smPreviewable">
+                <button class="btn btn-link btn-sm p-1 fa fa-eye o_preview_attachment_button text-primary"
+                        data-tooltip="Preview"
+                        aria-label="Preview"
+                        t-on-click.stop="(ev) => this.smOpenAttachmentPreview(ev, file)"
+                        type="button"
+                        style="position: absolute; top: 2px; right: 22px; z-index: 10;"/>
+            </t>
+        </xpath>
+        
+    </t>
+
+</templates>
