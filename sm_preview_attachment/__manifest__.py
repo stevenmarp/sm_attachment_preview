@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Preview Attachment : Images, PDFs, Office docs, Excel Reports',
-    'version': '19.0.1.0.0',
+    'version': '19.0.5.0.0',
     'category': 'Tools',
     'summary': 'Preview Binary fields, attachments, PDF reports & Excel wizard reports before download',
     'description': '''
