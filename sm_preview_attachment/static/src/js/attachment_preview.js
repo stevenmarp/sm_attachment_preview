@@ -3,7 +3,8 @@
 import { patch } from "@web/core/utils/patch";
 import { BinaryField } from "@web/views/fields/binary/binary_field";
 import { Many2ManyBinaryField } from "@web/views/fields/many2many_binary/many2many_binary_field";
-import { useState } from "@odoo/owl";
+import { onMounted, onPatched } from "@odoo/owl";
+import { showExcelPreviewModal } from "./report_preview";
 
 /**
  * SM Preview Attachment - Preview Button for Binary Fields
@@ -133,6 +134,47 @@ function showPreviewModal(previewType, contentUrl, fileName, downloadUrl, isOffi
             </button>
         ` : '';
         
+        // Use <img> for image types (more reliable than iframe)
+        let bodyContent = '';
+        if (previewType === 'image') {
+            bodyContent = `
+                <div class="sm-preview-loading">
+                    <i class="fa fa-spinner fa-spin fa-3x"></i>
+                    <p>Loading preview...</p>
+                </div>
+                <div class="sm-preview-image-viewer">
+                    <img src="${contentUrl}" alt="${fileName || 'Preview'}" />
+                </div>
+            `;
+        } else if (previewType === 'video') {
+            bodyContent = `
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000;">
+                    <video controls autoplay style="max-width:100%;max-height:100%;">
+                        <source src="${contentUrl}">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            `;
+        } else if (previewType === 'audio') {
+            bodyContent = `
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                    <audio controls autoplay>
+                        <source src="${contentUrl}">
+                        Your browser does not support the audio tag.
+                    </audio>
+                </div>
+            `;
+        } else {
+            // PDF, text, auto, etc. — use iframe
+            bodyContent = `
+                <div class="sm-preview-loading">
+                    <i class="fa fa-spinner fa-spin fa-3x"></i>
+                    <p>Loading preview...</p>
+                </div>
+                <iframe src="${contentUrl}" class="sm-preview-iframe" frameborder="0" allowfullscreen="true"></iframe>
+            `;
+        }
+        
         modalContent = `
             <div class="sm-preview-modal-header">
                 <span class="sm-preview-modal-title">${fileName || 'Preview'}</span>
@@ -147,11 +189,7 @@ function showPreviewModal(previewType, contentUrl, fileName, downloadUrl, isOffi
                 </div>
             </div>
             <div class="sm-preview-modal-body">
-                <div class="sm-preview-loading">
-                    <i class="fa fa-spinner fa-spin fa-3x"></i>
-                    <p>Loading preview...</p>
-                </div>
-                <iframe src="${contentUrl}" class="sm-preview-iframe" frameborder="0" allowfullscreen="true"></iframe>
+                ${bodyContent}
             </div>
         `;
     }
@@ -161,11 +199,22 @@ function showPreviewModal(previewType, contentUrl, fileName, downloadUrl, isOffi
     // Close modal handler
     const closeModal = () => {
         backdrop.remove();
-        modal.remove();
     };
     
-    backdrop.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', (ev) => {
+        // Only close when clicking the backdrop itself, not the modal content
+        if (ev.target === backdrop) closeModal();
+    });
     modal.querySelector('.sm-close-btn').addEventListener('click', closeModal);
+    
+    // ESC key to close
+    const escHandler = (ev) => {
+        if (ev.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
     
     // Download handler
     modal.querySelector('.sm-download-btn').addEventListener('click', () => {
@@ -233,8 +282,36 @@ function showPreviewModal(previewType, contentUrl, fileName, downloadUrl, isOffi
         });
     }
     
+    // Image load events
+    const img = modal.querySelector('.sm-preview-image-viewer img');
+    if (img && loading) {
+        img.addEventListener('load', () => {
+            loading.style.display = 'none';
+        });
+        img.addEventListener('error', () => {
+            loading.innerHTML = `
+                <i class="fa fa-exclamation-triangle fa-3x text-warning"></i>
+                <p>Unable to load image</p>
+                <button class="btn btn-primary mt-2 sm-download-fallback">
+                    <i class="fa fa-download me-1"></i> Download Instead
+                </button>
+            `;
+            const fallbackBtn = modal.querySelector('.sm-download-fallback');
+            if (fallbackBtn) {
+                fallbackBtn.addEventListener('click', () => {
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = fileName || 'download';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+        });
+    }
+    
     document.body.appendChild(backdrop);
-    document.body.appendChild(modal);
+    backdrop.appendChild(modal);
 }
 
 // ============================================================================
@@ -243,18 +320,91 @@ function showPreviewModal(previewType, contentUrl, fileName, downloadUrl, isOffi
 patch(BinaryField.prototype, {
     setup() {
         super.setup(...arguments);
-        
-        this.smPreviewState = useState({
-            canPreview: false,
-            previewType: 'other',
+
+        onMounted(() => this._smEnsurePreviewButton());
+        onPatched(() => this._smEnsurePreviewButton());
+    },
+
+    /**
+     * Traverse OWL2 bdom tree to find the first real DOM element.
+     */
+    _smFindRootEl() {
+        const bdom = this.__owl__?.bdom;
+        if (!bdom) return null;
+        return this._smWalkBdom(bdom);
+    },
+
+    _smWalkBdom(node) {
+        if (!node) return null;
+        if (node.el && node.el.nodeType === 1) return node.el;
+        if (node.el && node.el.nodeType === 3 && node.el.parentElement) return node.el.parentElement;
+        const childResult = this._smWalkBdom(node.child);
+        if (childResult) return childResult;
+        if (node.children) {
+            for (const c of node.children) {
+                const result = this._smWalkBdom(c);
+                if (result) return result;
+            }
+        }
+        if (node.component?.__owl__?.bdom) {
+            return this._smWalkBdom(node.component.__owl__.bdom);
+        }
+        return null;
+    },
+
+    /**
+     * Fallback: Dynamically inject preview button via DOM when the XML template
+     * extension doesn't apply (e.g. widgets using t-inherit-mode="primary"
+     * like work_permit_upload).
+     */
+    _smEnsurePreviewButton() {
+        const rootEl = this._smFindRootEl();
+        if (!rootEl) return;
+
+        const container = rootEl.closest?.('.o_field_widget') || rootEl.parentElement;
+        if (!container) return;
+
+        // Remove previously JS-injected buttons
+        container.querySelectorAll('.o_preview_file_button_js').forEach(b => b.remove());
+
+        // If XML patch already added a button, nothing to do
+        if (container.querySelector('.o_preview_file_button:not(.o_preview_file_button_js)')) return;
+
+        if (!this.smCanPreview) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-link btn-sm lh-1 fa fa-eye o_preview_file_button o_preview_file_button_js text-primary';
+        btn.title = 'Preview';
+        btn.type = 'button';
+        btn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.smOpenPreview(ev);
         });
+
+        // Place after download button
+        const downloadBtn = container.querySelector('.o_download_file_button');
+        if (downloadBtn) { downloadBtn.after(btn); return; }
+
+        // Place before form URI (readonly mode)
+        const formUri = container.querySelector('.o_form_uri');
+        if (formUri) { formUri.before(btn); return; }
+
+        // Place before pencil/edit button (edit mode, dirty record)
+        const editBtn = container.querySelector('.o_select_file_button');
+        if (editBtn) { editBtn.before(btn); return; }
+
+        // Place before trash/clear button
+        const clearBtn = container.querySelector('.o_clear_file_button');
+        if (clearBtn) { clearBtn.before(btn); return; }
     },
 
     get smCanPreview() {
         const hasData = this.props.record.data[this.props.name];
         const hasResId = this.props.record.resId;
-        const result = hasData && hasResId && canPreview(this.fileName);
-        return result;
+        const isDirty = this.props.record.dirty;
+        // Always show preview when there's data + saved record, even without known extension
+        return !!(hasData && hasResId && !isDirty);
     },
 
     get smPreviewType() {
@@ -285,21 +435,57 @@ patch(BinaryField.prototype, {
         ev.preventDefault();
         ev.stopPropagation();
         
-        const previewType = this.smPreviewType;
+        let previewType = this.smPreviewType;
         let contentUrl = this.smPreviewUrl;
+        const downloadUrl = this.smDownloadUrl;
+        const fileName = this.fileName;
+        const isOffice = this.smIsOfficeDoc;
         
-        if (this.smIsOfficeDoc) {
+        // Excel files — use SheetJS client-side rendering
+        if (previewType === 'excel' || isOffice) {
+            if (previewType === 'excel') {
+                showExcelPreviewModal(contentUrl, fileName, downloadUrl);
+                return;
+            }
             const baseUrl = window.location.origin;
-            const fileUrl = `${baseUrl}${this.smDownloadUrl}`;
+            const fileUrl = `${baseUrl}${downloadUrl}`;
             contentUrl = getOfficeOnlineUrl(fileUrl);
+            showPreviewModal(previewType, contentUrl, fileName, downloadUrl, true);
+            return;
+        }
+        
+        // For unknown file types, detect content-type first
+        if (previewType === 'other') {
+            fetch(contentUrl, { method: 'HEAD' }).then(resp => {
+                const mime = resp.headers.get('Content-Type') || '';
+                const detectedType = getPreviewType(fileName, mime);
+                
+                if (detectedType === 'other') {
+                    // Still unknown — try iframe, browser might handle it
+                    showPreviewModal('auto', contentUrl, fileName, downloadUrl, false);
+                } else if (detectedType === 'excel') {
+                    // Excel — use SheetJS client-side rendering
+                    showExcelPreviewModal(contentUrl, fileName, downloadUrl);
+                } else if (isOfficeDoc(detectedType)) {
+                    const baseUrl = window.location.origin;
+                    const fileUrl = `${baseUrl}${downloadUrl}`;
+                    showPreviewModal(detectedType, getOfficeOnlineUrl(fileUrl), fileName, downloadUrl, true);
+                } else {
+                    showPreviewModal(detectedType, contentUrl, fileName, downloadUrl, false);
+                }
+            }).catch(() => {
+                // Fallback: just try iframe
+                showPreviewModal('auto', contentUrl, fileName, downloadUrl, false);
+            });
+            return;
         }
         
         showPreviewModal(
             previewType,
             contentUrl,
-            this.fileName,
-            this.smDownloadUrl,
-            this.smIsOfficeDoc
+            fileName,
+            downloadUrl,
+            false
         );
     },
 });
@@ -330,6 +516,12 @@ patch(Many2ManyBinaryField.prototype, {
         
         const downloadUrl = `/web/content/${file.id}?download=true`;
         let contentUrl = `/web/content/${file.id}?download=false`;
+        
+        // Excel — use SheetJS client-side rendering
+        if (previewType === 'excel') {
+            showExcelPreviewModal(contentUrl, file.name, downloadUrl);
+            return;
+        }
         
         if (isOffice) {
             const baseUrl = window.location.origin;

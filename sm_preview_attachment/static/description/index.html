@@ -1,556 +1,321 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SM Preview Attachment</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-        }
-        
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-            margin-bottom: 40px;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.95;
-        }
-        
-        .version-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 15px;
-        }
-        
-        /* Section styling */
-        section {
-            margin-bottom: 40px;
-        }
-        
-        h2 {
-            font-size: 1.6em;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-            display: inline-block;
-        }
-        
-        h3 {
-            font-size: 1.2em;
-            color: #555;
-            margin: 20px 0 15px;
-        }
-        
-        p {
-            margin-bottom: 15px;
-            color: #555;
-        }
-        
-        /* Feature cards */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .feature-card {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        .feature-card h4 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .feature-card p {
-            color: #666;
-            font-size: 0.95em;
-            margin: 0;
-        }
-        
-        .feature-icon {
-            font-size: 2em;
-            margin-bottom: 12px;
-        }
-        
-        /* Format table */
-        .format-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .format-table th,
-        .format-table td {
-            padding: 14px 18px;
-            text-align: left;
-        }
-        
-        .format-table th {
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .format-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
-        .format-table tr:hover {
-            background: #f0f0f0;
-        }
-        
-        .format-table td:first-child {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .format-table code {
-            background: #e9ecef;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            color: #495057;
-        }
-        
-        /* Preview info boxes */
-        .info-box {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-left: 4px solid #2196f3;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        
-        .info-box.warning {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-            border-left-color: #ff9800;
-        }
-        
-        .info-box.success {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border-left-color: #4caf50;
-        }
-        
-        .info-box h4 {
-            margin-bottom: 8px;
-            color: #333;
-        }
-        
-        .info-box p {
-            margin: 0;
-            color: #555;
-        }
-        
-        /* Screenshot placeholder */
-        .screenshot {
-            background: #f5f5f5;
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            padding: 60px 20px;
-            text-align: center;
-            color: #999;
-            margin: 20px 0;
-        }
-        
-        /* Installation steps */
-        .steps {
-            counter-reset: step;
-            list-style: none;
-            padding: 0;
-        }
-        
-        .steps li {
-            position: relative;
-            padding-left: 60px;
-            margin-bottom: 20px;
-            min-height: 50px;
-        }
-        
-        .steps li::before {
-            counter-increment: step;
-            content: counter(step);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 40px;
-            height: 40px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        .steps li strong {
-            display: block;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        /* Compatibility badges */
-        .badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-        
-        .badge.odoo {
-            background: #714B67;
-            color: white;
-        }
-        
-        .badge.license {
-            background: #28a745;
-            color: white;
-        }
-        
-        .badge.python {
-            background: #3776ab;
-            color: white;
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 30px 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            margin-top: 40px;
-        }
-        
-        .footer p {
-            margin: 5px 0;
-            color: #666;
-        }
-        
-        .footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Responsive */
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .format-table {
-                font-size: 0.9em;
-            }
-            
-            .format-table th,
-            .format-table td {
-                padding: 10px 12px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Banner -->
-    <div style="text-align: center; margin-bottom: 30px;">
-        <img src="banner.gif" alt="SM Preview Attachment Banner" style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-    </div>
-    
-    <!-- Header -->
-    <div class="header">
-        <h1>📎 SM Preview Attachment</h1>
-        <p>Preview Binary Fields & Attachments directly in Odoo 18</p>
-        <span class="version-badge">Version 2.0.0</span>
-    </div>
-    
-    <!-- Badges -->
-    <div class="badges">
-        <span class="badge odoo">Odoo 18.0</span>
-        <span class="badge license">LGPL-3</span>
-        <span class="badge" style="background: #17a2b8; color: white;">Community & Enterprise</span>
-    </div>
-    
-    <!-- Overview -->
-    <section>
-        <h2>📖 Overview</h2>
-        <p>
-            <strong>SM Preview Attachment</strong> adds preview buttons to Binary fields and attachment fields 
-            in Odoo 18 forms and list views. Preview images, PDFs, Office documents, videos, and more 
-            without downloading files!
-        </p>
-        
-        <div class="info-box success">
-            <h4>✅ Odoo 18 Community & Enterprise</h4>
-            <p>
-                Fully compatible with both Odoo 18 Community and Enterprise editions.
-                This module uses OWL 2 component system.
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h2 style="color: #667eea; font-size: 32px; font-weight: bold; margin-bottom: 10px;">
+                Preview Attachment
+            </h2>
+            <p style="font-size: 18px; color: #555; margin-bottom: 30px;">
+                Preview Images, PDFs, Office Documents, Excel Reports &amp; More — Directly in Odoo
             </p>
         </div>
-        
-        <div class="info-box">
-            <h4>ℹ️ Complements Built-in Features</h4>
-            <p>
-                Odoo 18+ Enterprise has built-in chatter attachment preview. This module adds preview buttons 
-                to Binary fields and Many2Many attachment fields in form/list views - features not included in the built-in preview.
-            </p>
-        </div>
-    </section>
-    
-    <!-- Key Features -->
-    <section>
-        <h2>🚀 Key Features</h2>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">👁️</div>
-                <h4>Preview Button on Binary Fields</h4>
-                <p>One-click preview button appears next to Binary fields with files (images, PDFs, documents)</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📎</div>
-                <h4>Attachment Field Support</h4>
-                <p>Preview attachments from Many2Many Binary fields commonly used in Odoo forms</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🖼️</div>
-                <h4>Modal Preview</h4>
-                <p>Clean fullscreen modal viewer for images, PDFs, and embedded document preview</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📄</div>
-                <h4>Office Document Support</h4>
-                <p>Preview Word, Excel, PowerPoint via Office Online or Google Docs Viewer</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">⬇️</div>
-                <h4>Download Button</h4>
-                <p>Quick download option available in the preview modal header</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">⌨️</div>
-                <h4>Keyboard Shortcuts</h4>
-                <p>Press ESC to close modal quickly for efficient workflow</p>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Supported Formats -->
-    <section>
-        <h2>📋 Supported File Formats</h2>
-        
-        <table class="format-table">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Extensions</th>
-                    <th>Preview Method</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>🖼️ Images</td>
-                    <td><code>PNG</code> <code>JPG</code> <code>JPEG</code> <code>GIF</code> <code>BMP</code> <code>SVG</code> <code>WEBP</code></td>
-                    <td>Native browser</td>
-                </tr>
-                <tr>
-                    <td>📑 PDF</td>
-                    <td><code>PDF</code></td>
-                    <td>Browser PDF viewer</td>
-                </tr>
-                <tr>
-                    <td>📝 Word</td>
-                    <td><code>DOC</code> <code>DOCX</code> <code>ODT</code></td>
-                    <td>Office Online / Google Docs</td>
-                </tr>
-                <tr>
-                    <td>📊 Excel</td>
-                    <td><code>XLS</code> <code>XLSX</code> <code>ODS</code></td>
-                    <td>Office Online / Google Docs</td>
-                </tr>
-                <tr>
-                    <td>📽️ PowerPoint</td>
-                    <td><code>PPT</code> <code>PPTX</code> <code>ODP</code></td>
-                    <td>Office Online / Google Docs</td>
-                </tr>
-                <tr>
-                    <td>🎬 Video</td>
-                    <td><code>MP4</code> <code>WEBM</code> <code>OGG</code></td>
-                    <td>HTML5 video player</td>
-                </tr>
-                <tr>
-                    <td>🎵 Audio</td>
-                    <td><code>MP3</code> <code>WAV</code> <code>OGG</code> <code>M4A</code></td>
-                    <td>HTML5 audio player</td>
-                </tr>
-                <tr>
-                    <td>📄 Text</td>
-                    <td><code>TXT</code> <code>CSV</code> <code>JSON</code> <code>XML</code> <code>HTML</code></td>
-                    <td>Text viewer</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-    
-    <!-- How It Works -->
-    <section>
-        <h2>🔧 How It Works</h2>
-        
-        <h3>Binary Field Preview</h3>
-        <p>
-            When a Binary field contains a file (e.g., employee photo, product attachment, document), 
-            a "Preview" button automatically appears next to the filename. Click to open the file 
-            in a modal viewer.
-        </p>
-        
-        <h3>Many2Many Attachment Preview</h3>
-        <p>
-            For Many2Many Binary fields (attachment lists), each attachment row shows a preview button.
-            Supports both form view and list view displays.
-        </p>
-        
-        <h3>Office Document Preview</h3>
-        <div class="info-box warning">
-            <h4>⚠️ Office Preview Requirements</h4>
-            <p>
-                For Office documents (Word, Excel, PowerPoint), the module uses external services:
-            </p>
-            <ul style="margin-top: 10px; padding-left: 20px;">
-                <li><strong>Public URLs:</strong> Uses Office Online viewer (view.officeapps.live.com)</li>
-                <li><strong>Private/Localhost:</strong> Shows download modal with option to use Google Docs Viewer</li>
-            </ul>
-        </div>
-    </section>
-    
-    <!-- Installation -->
-    <section>
-        <h2>📥 Installation</h2>
-        
-        <ol class="steps">
-            <li>
-                <strong>Download Module</strong>
-                Download and extract the <code>sm_preview_attachment</code> folder to your Odoo addons directory.
-            </li>
-            <li>
-                <strong>Update Apps List</strong>
-                Go to Apps menu and click "Update Apps List" (requires developer mode).
-            </li>
-            <li>
-                <strong>Install Module</strong>
-                Search for "SM Preview Attachment" and click Install.
-            </li>
-        </ol>
-    </section>
-    
-    <!-- Technical Info -->
-    <section>
-        <h2>⚙️ Technical Information</h2>
-        
-        <h3>Dependencies</h3>
-        <p>This module only depends on <code>web</code> (base Odoo web module).</p>
-        
-        <h3>OWL Components Patched</h3>
-        <ul style="padding-left: 20px; color: #555;">
-            <li><code>BinaryField</code> - Adds preview button for single file Binary fields</li>
-            <li><code>Many2ManyBinaryField</code> - Adds preview buttons for attachment list fields</li>
-        </ul>
-        
-        <h3>Module Structure</h3>
-        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 0.9em; color: #333;">
-sm_preview_attachment/
-├── __init__.py
-├── __manifest__.py
-├── README.md
-└── static/
-    ├── description/
-    │   ├── banner.gif
-    │   ├── icon.png
-    │   └── index.html
-    └── src/
-        ├── css/
-        │   └── preview.css
-        ├── js/
-        │   └── attachment_preview.js
-        └── xml/
-            └── attachment_preview.xml
-        </pre>
-    </section>
-    
-    <!-- Author -->
-    <div class="footer">
-        <h3 style="margin-bottom: 15px; color: #333;">👤 Author</h3>
-        <p><strong>Steven Marp</strong></p>
-        <p>Made with ❤️ for Stevenmarp</p>
-        <p style="margin-top: 15px;">
-            <a href="https://apps.odoo.com/apps/browse?repo_maintainer_id=512936">My Apps</a>
-        </p>
     </div>
-</body>
-</html>
+</section>
+
+<!-- DEMO -->
+<section class="oe_container" style="padding: 40px 0;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h3 style="color: #333; font-size: 26px; margin-bottom: 10px;">
+                <i class="fa fa-play-circle" style="color: #667eea;"></i> Watch It In Action
+            </h3>
+            <p style="font-size: 16px; color: #777; margin-bottom: 25px;">
+                See how Preview Attachment transforms your Odoo experience — no more unnecessary downloads.
+            </p>
+            <div style="max-width: 800px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.12);">
+                <video autoplay loop muted playsinline style="width: 100%; display: block; border-radius: 12px;">
+                    <source src="Screencast from 05-04-26 00:45:10.webm" type="video/webm"/>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- KEY FEATURES -->
+<section class="oe_container" style="background: #F8F9FA; padding: 40px 0; border-radius: 12px;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 style="text-align: center; color: #333; font-size: 26px; margin-bottom: 30px;">
+                Key Features
+            </h3>
+            <table style="width: 100%; border-collapse: separate; border-spacing: 20px;">
+                <tr>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">Binary Field Preview</h4>
+                        <p style="color: #666;">One-click Preview button (eye icon) on every Binary field — form view and list view. Works on all widgets including custom ones.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">Attachment Preview</h4>
+                        <p style="color: #666;">Preview button on Many2Many attachment fields. Quick preview without downloading — images, PDFs, documents all viewable inline.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">PDF Report Preview</h4>
+                        <p style="color: #666;">Intercepts PDF report printing — preview the report in a modal before downloading or printing. Works on all QWeb PDF reports.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">Excel Preview (SheetJS)</h4>
+                        <p style="color: #666;">Preview Excel files client-side using SheetJS — rendered as interactive HTML tables. No Office Online or public URL required. Works on localhost!</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">Office Document Support</h4>
+                        <p style="color: #666;">Preview Word, Excel, and PowerPoint via Office Online or Google Docs Viewer. Automatic fallback with download option on localhost.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 10px; padding: 20px; vertical-align: top; width: 33%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #667eea;">Excel Preview Mixin</h4>
+                        <p style="color: #666;">Easy-to-use Python mixin for wizard Excel reports. Inherit the mixin, implement 2 methods, and get Preview + Download buttons automatically!</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- SUPPORTED FORMATS -->
+<section class="oe_container" style="padding: 40px 0;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 style="text-align: center; color: #333; font-size: 26px; margin-bottom: 30px;">
+                <i class="fa fa-file-o" style="color: #667eea;"></i> Supported File Formats
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <thead>
+                    <tr style="background: #667eea; color: white;">
+                        <th style="padding: 14px 18px; text-align: left;">Type</th>
+                        <th style="padding: 14px 18px; text-align: left;">Extensions</th>
+                        <th style="padding: 14px 18px; text-align: left;">Preview Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #fff;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Images</td>
+                        <td style="padding: 12px 18px;">PNG, JPG, JPEG, GIF, BMP, SVG, WEBP, ICO, TIFF</td>
+                        <td style="padding: 12px 18px;">Native &lt;img&gt; tag — fast and reliable</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 12px 18px; font-weight: 600;">PDF</td>
+                        <td style="padding: 12px 18px;">PDF</td>
+                        <td style="padding: 12px 18px;">Browser PDF viewer (iframe)</td>
+                    </tr>
+                    <tr style="background: #fff;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Excel</td>
+                        <td style="padding: 12px 18px;">XLS, XLSX, ODS</td>
+                        <td style="padding: 12px 18px;">SheetJS client-side rendering (even on localhost!)</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Word</td>
+                        <td style="padding: 12px 18px;">DOC, DOCX, ODT, RTF</td>
+                        <td style="padding: 12px 18px;">Office Online / Google Docs Viewer</td>
+                    </tr>
+                    <tr style="background: #fff;">
+                        <td style="padding: 12px 18px; font-weight: 600;">PowerPoint</td>
+                        <td style="padding: 12px 18px;">PPT, PPTX, ODP</td>
+                        <td style="padding: 12px 18px;">Office Online / Google Docs Viewer</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Video</td>
+                        <td style="padding: 12px 18px;">MP4, WEBM, OGG, MOV, AVI</td>
+                        <td style="padding: 12px 18px;">HTML5 video player</td>
+                    </tr>
+                    <tr style="background: #fff;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Audio</td>
+                        <td style="padding: 12px 18px;">MP3, WAV, OGG, FLAC, AAC, M4A</td>
+                        <td style="padding: 12px 18px;">HTML5 audio player</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Text</td>
+                        <td style="padding: 12px 18px;">TXT, CSV, JSON, XML, HTML, CSS, JS, PY, LOG</td>
+                        <td style="padding: 12px 18px;">Text viewer (iframe)</td>
+                    </tr>
+                    <tr style="background: #fff;">
+                        <td style="padding: 12px 18px; font-weight: 600;">Unknown</td>
+                        <td style="padding: 12px 18px;">Any file without extension</td>
+                        <td style="padding: 12px 18px;">Auto-detect via Content-Type header</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="oe_container" style="padding: 40px 0;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 style="text-align: center; color: #333; font-size: 26px; margin-bottom: 30px;">
+                How It Works
+            </h3>
+            <table style="width: 100%; border-collapse: separate; border-spacing: 20px;">
+                <tr>
+                    <td style="text-align: center; background: #EDE7F6; border-radius: 10px; padding: 30px; vertical-align: top; width: 25%;">
+                        <div style="font-size: 40px; margin-bottom: 10px; color: #667eea;"><i class="fa fa-download"></i></div>
+                        <h4 style="color: #667eea;">Install Module</h4>
+                        <p style="color: #555;">Install the module — no configuration needed. Preview buttons appear automatically on all Binary fields.</p>
+                    </td>
+                    <td style="text-align: center; background: #EDE7F6; border-radius: 10px; padding: 30px; vertical-align: top; width: 25%;">
+                        <div style="font-size: 40px; margin-bottom: 10px; color: #667eea;"><i class="fa fa-eye"></i></div>
+                        <h4 style="color: #667eea;">Click Preview</h4>
+                        <p style="color: #555;">Click the eye icon next to any file field or attachment. A preview modal opens instantly.</p>
+                    </td>
+                    <td style="text-align: center; background: #EDE7F6; border-radius: 10px; padding: 30px; vertical-align: top; width: 25%;">
+                        <div style="font-size: 40px; margin-bottom: 10px; color: #667eea;"><i class="fa fa-print"></i></div>
+                        <h4 style="color: #667eea;">Print Reports</h4>
+                        <p style="color: #555;">PDF and Excel reports are intercepted — preview first, then download or print from the modal.</p>
+                    </td>
+                    <td style="text-align: center; background: #EDE7F6; border-radius: 10px; padding: 30px; vertical-align: top; width: 25%;">
+                        <div style="font-size: 40px; margin-bottom: 10px; color: #667eea;"><i class="fa fa-check-circle"></i></div>
+                        <h4 style="color: #667eea;">Done!</h4>
+                        <p style="color: #555;">Close with ESC or click backdrop. Download anytime from the modal header. Zero configuration required.</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- EXCEL MIXIN -->
+<section class="oe_container" style="background: #E8F5E9; padding: 40px 0; border-radius: 12px;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h3 style="color: #333; font-size: 26px; margin-bottom: 10px;">
+                <i class="fa fa-file-excel-o" style="color: #1d6f42;"></i> Excel Preview Mixin for Developers
+            </h3>
+            <p style="font-size: 16px; color: #555; margin-bottom: 25px;">
+                Build wizard Excel reports with built-in Preview + Download buttons
+            </p>
+        </div>
+        <div class="oe_span12">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 20px;">
+                <tr>
+                    <td style="background: #fff; border-radius: 10px; padding: 25px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #1d6f42; margin-bottom: 15px;">Python — Inherit the Mixin</h4>
+                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 13px; overflow-x: auto; color: #333;">class MyWizard(models.TransientModel):
+    _name = 'my.wizard'
+    _inherit = ['sm.excel.preview.mixin']
+
+    @property
+    def _excel_filename(self):
+        return 'my_report.xlsx'
+
+    def _generate_excel_data(self):
+        output = io.BytesIO()
+        # ... generate Excel with openpyxl ...
+        return output</pre>
+                    </td>
+                    <td style="background: #fff; border-radius: 10px; padding: 25px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <h4 style="color: #1d6f42; margin-bottom: 15px;">XML — Add Buttons</h4>
+                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 13px; overflow-x: auto; color: #333;">&lt;footer&gt;
+    &lt;button name="action_preview_excel"
+            type="object"
+            string="Preview"
+            class="btn-primary"/&gt;
+    &lt;button name="action_download_excel"
+            type="object"
+            string="Download"
+            class="btn-secondary"/&gt;
+    &lt;button string="Close"
+            special="cancel"/&gt;
+&lt;/footer&gt;</pre>
+                    </td>
+                </tr>
+            </table>
+            <p style="text-align: center; color: #555; margin-top: 15px;">
+                That's it! Just inherit the mixin and implement 2 methods. The mixin handles Preview modal, SheetJS rendering, and file download.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- WHY THIS MODULE -->
+<section class="oe_container" style="background: #EDE7F6; padding: 40px 0; border-radius: 12px; margin-top: 40px;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h3 style="color: #333; font-size: 26px; margin-bottom: 20px;">
+                <i class="fa fa-lightbulb-o" style="color: #667eea;"></i> Why This Module?
+            </h3>
+        </div>
+        <div class="oe_span12">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 15px;">
+                <tr>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Zero Configuration</h4>
+                        <p style="color: #666;">Install and it just works. No settings, no setup. Preview buttons appear automatically on every Binary field and attachment across all models.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Works on All Binary Widgets</h4>
+                        <p style="color: #666;">Not just standard Binary fields — works on custom widgets too (work_permit_upload, etc.) thanks to smart JS DOM fallback when OWL patches don't apply.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Community &amp; Enterprise</h4>
+                        <p style="color: #666;">Works on both Odoo Community and Enterprise editions. Only depends on the <code>web</code> module — available in every Odoo installation.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Auto-Detect File Types</h4>
+                        <p style="color: #666;">Files without extensions? No problem. The module auto-detects file type via Content-Type header and renders the correct preview automatically.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Lightweight &amp; Fast</h4>
+                        <p style="color: #666;">Pure frontend JavaScript using OWL 2 patches. No heavy backend processing, no extra API calls, no database writes. Zero performance impact.</p>
+                    </td>
+                    <td style="background: #fff; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <h4 style="color: #667eea;">Excel on Localhost</h4>
+                        <p style="color: #666;">Unlike other modules that need Office Online (public URL), our Excel preview uses SheetJS client-side rendering — works perfectly on localhost and private servers.</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- TECHNICAL -->
+<section class="oe_container" style="padding: 40px 0;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 style="text-align: center; color: #333; font-size: 26px; margin-bottom: 30px;">
+                <i class="fa fa-code" style="color: #667eea;"></i> Technical Details
+            </h3>
+            <table style="width: 100%; border-collapse: separate; border-spacing: 15px;">
+                <tr>
+                    <td style="background: #f8f9fa; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%;">
+                        <h4 style="color: #333; margin-bottom: 10px;">Module Info</h4>
+                        <ul style="list-style: none; padding: 0; color: #555;">
+                            <li style="padding: 5px 0;"><strong>Version:</strong> 18.0.4.0.0</li>
+                            <li style="padding: 5px 0;"><strong>License:</strong> LGPL-3</li>
+                            <li style="padding: 5px 0;"><strong>Dependencies:</strong> web (only)</li>
+                            <li style="padding: 5px 0;"><strong>Compatibility:</strong> Odoo 18.0 CE &amp; EE</li>
+                        </ul>
+                    </td>
+                    <td style="background: #f8f9fa; border-radius: 8px; padding: 20px; vertical-align: top; width: 50%;">
+                        <h4 style="color: #333; margin-bottom: 10px;">Components Patched</h4>
+                        <ul style="list-style: none; padding: 0; color: #555;">
+                            <li style="padding: 5px 0;"><strong>BinaryField</strong> — Preview button on file fields</li>
+                            <li style="padding: 5px 0;"><strong>ListBinaryField</strong> — Preview in list/tree views</li>
+                            <li style="padding: 5px 0;"><strong>Many2ManyBinaryField</strong> — Attachment preview</li>
+                            <li style="padding: 5px 0;"><strong>Report Handlers</strong> — PDF &amp; Excel intercept</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- AUTHOR -->
+<section class="oe_container" style="background: #F8F9FA; padding: 30px 0; border-radius: 12px;">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h3 style="color: #333; margin-bottom: 15px;">Author</h3>
+            <p style="color: #555; font-size: 16px;"><strong>Steven Marp</strong></p>
+            <p style="color: #777; font-size: 14px;">
+                <a href="https://apps.odoo.com/apps/browse?repo_maintainer_id=512936" style="color: #667eea; text-decoration: none;">
+                    <i class="fa fa-external-link"></i> More Apps on Odoo Apps Store
+                </a>
+            </p>
+        </div>
+    </div>
+</section>
